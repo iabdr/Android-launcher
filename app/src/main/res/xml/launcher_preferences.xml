@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen android:title="Settings"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:title="@string/pixel_ui_pref_title"
+        android:summary="@string/pixel_ui_pref_summary"
+        android:icon="@drawable/ic_ui"
+        app:content="@xml/launcher_theme_preferences" />
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:icon="@drawable/ic_desktop"
+        android:summary="@string/general_pref_summary"
+        android:title="@string/general_pref_title"
+        app:content="@xml/launcher_desktop_preferences" />
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:icon="@drawable/ic_dock"
+        android:summary="@string/dock_pref_summary"
+        android:title="@string/dock_pref_title"
+        app:content="@xml/launcher_dock_preferences" />
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:icon="@drawable/ic_app_drawer"
+        android:summary="@string/app_drawer_pref_summary"
+        android:title="@string/app_drawer_pref_title"
+        app:content="@xml/launcher_app_drawer_preferences" />
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:title="@string/behavior_pref_title"
+        android:summary="@string/behavior_pref_summary"
+        android:icon="@drawable/ic_behavior"
+        app:content="@xml/launcher_behavior_preferences" />
+
+    <Preference
+        android:key="backups"
+        android:title="@string/backups"
+        android:summary="@string/backup_pref_summary"
+        android:icon="@drawable/ic_import_export">
+
+        <intent
+            android:targetPackage="@string/application_id"
+            android:targetClass="ch.deletescape.lawnchair.backup.BackupListActivity"/>
+    </Preference>
+
+    <ch.deletescape.lawnchair.settings.ui.SubPreference
+        android:title="@string/debug_pref_title"
+        android:summary="@string/debug_pref_summary"
+        android:icon="@drawable/ic_debug"
+        app:content="@xml/launcher_debug_preferences"
+        app:longClickContent="@xml/launcher_hidden_preferences" />
+
+    <Preference
+        android:key="about"
+        android:title="@string/about_title"
+        android:summary="@string/about_pref_summary"
+        android:icon="@drawable/ic_information"/>
+
+</android.support.v7.preference.PreferenceScreen>

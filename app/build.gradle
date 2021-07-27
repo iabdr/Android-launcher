@@ -1,0 +1,120 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+Properties localProps = new Properties()
+File localPropsFile = project.rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.newDataInputStream())
+}
+
+def isTravis = String.valueOf(localProps.getProperty('travis.isTravis')) ?: System.getenv("TRAVIS") ?: "false"
+def taggedBuild = String.valueOf(localProps.getProperty('travis.isTagged')) ?: System.getenv("TRAVIS_TAG") ? "true" : "false"
+def buildNr = localProps.getProperty('travis.buildNr') ?: System.getenv("TRAVIS_BUILD_NUMBER") ?: "0"
+def isDev = localProps.getProperty('isDev') ?: false
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    signingConfigs {
+        travis {
+            storeFile file("debug.jks")
+            storePassword localProps.getProperty('store.password') ?: System.getenv("STORE_PASSWORD")
+            keyAlias "Lawnchair"
+            keyPassword localProps.getProperty('key.password') ?: System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 27
+        applicationId "ch.deletescape.lawnchair"
+
+        buildConfigField "boolean", "TRAVIS", isTravis
+        buildConfigField "boolean", "TAGGED_BUILD", taggedBuild
+        buildConfigField "int", "TRAVIS_BUILD_NUMBER", buildNr
+        buildConfigField "boolean", "ENABLE_LAWNFEED", "false"
+
+        ext.awarenessApiKey = localProps.getProperty('awarenessApiKey') ?: System.getenv("AWARENESS_API_KEY")
+        buildConfigField "boolean", "AWARENESS_API_ENABLED", ext.awarenessApiKey ? "true" : "false"
+        manifestPlaceholders = [awarenessApiKey: ext.awarenessApiKey ?: "null"]
+
+        if (isTravis == "true") {
+            versionCode = Integer.valueOf(buildNr)
+            ext.majorMinor = localProps.getProperty('version.majorminor') ?: System.getenv("MAJOR_MINOR")
+            versionName =  ext.majorMinor + (System.getenv("DRONE") ? "-" : ".") + buildNr
+        } else {
+            versionCode 1
+            versionName "dev"
+        }
+    }
+
+    buildTypes {
+        debug {
+            if (isTravis == "true") {
+                minifyEnabled true
+                shrinkResources true
+                if (System.getenv("DRONE") == "true") {
+                    applicationIdSuffix ".ci"
+                }
+                if (isDev) {
+                    applicationIdSuffix ".dev"
+                }
+
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                if (System.getenv("TRAVIS_EVENT_TYPE") != "pull_request" && !isDev) {
+                    signingConfig signingConfigs.travis
+                }
+            } else {
+                minifyEnabled false
+            }
+        }
+
+        release {
+            applicationIdSuffix ".plah"
+            buildConfigField "boolean", "ENABLE_LAWNFEED", "true"
+
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("TRAVIS_EVENT_TYPE") != "pull_request") {
+                signingConfig signingConfigs.travis
+            }
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        variant.resValue "string", "application_id", variant.applicationId
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    def supportLibVersion = '27.1.1'
+    implementation "com.android.support:support-v4:${supportLibVersion}"
+    implementation "com.android.support:recyclerview-v7:${supportLibVersion}"
+    implementation "com.android.support:palette-v7:${supportLibVersion}"
+    implementation "com.android.support:cardview-v7:${supportLibVersion}"
+    implementation "com.android.support:preference-v14:${supportLibVersion}"
+    implementation "com.android.support:design:${supportLibVersion}"
+    implementation "com.android.support:support-dynamic-animation:${supportLibVersion}"
+    implementation 'com.github.KwabenBerko:OpenWeatherMap-Android-Library:v1.1.1'
+    implementation 'com.google.android.gms:play-services-awareness:15.0.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation 'com.pavelsikun:vintage-chroma:1.5'
+    implementation project(':launcherclient')
+
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.github.florent37:fiftyshadesof:1.0.0'
+    implementation 'me.jfenn:attribouter:0.0.5'
+}
+
+repositories {
+    mavenCentral()
+}
